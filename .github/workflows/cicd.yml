@@ -9,10 +9,6 @@ on:
 jobs:
   main_job:
     runs-on: ubuntu-latest
-    env:
-      MARIADB_ROOT_PASSWORD: ${{ secrets.MARIADB_ROOT_PASSWORD }}
-      MARIADB_USER: ${{ secrets.MARIADB_USER }}
-      MARIADB_PASSWORD: ${{ secrets.MARIADB_PASSWORD }}
 
     steps:
       - name: Checkout repo
@@ -29,10 +25,20 @@ jobs:
           mkdir k8s
           kompose convert -f docker-compose.yml -o k8s/
 
+      - name: Create kustomization.yml
+        run: |
+          cd k8s
+          echo "resources:" > kustomization.yaml
+          for file in *.yaml; do
+            if [ "$file" != "kustomization.yaml" ]; then
+              echo "  - $file" >> kustomization.yaml
+            fi
+          done
+
       - name: Zip Kubernetes YAML files
         run: |
           cd k8s
-          zip -r ../PaulineSoubrieWordpress.zip *.yaml
+          zip -r ../PaulineSoubrieWordpress.zip *.yaml *.yml
 
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install -y lftp
