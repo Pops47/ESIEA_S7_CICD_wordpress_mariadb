@@ -1,0 +1,50 @@
+name: wordpress_cicd
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  main_job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Kompose
+        run: |
+          curl -L https://github.com/kubernetes/kompose/releases/latest/download/kompose-linux-amd64 -o kompose
+          chmod +x kompose
+          sudo mv kompose /usr/local/bin/kompose
+
+      - name: Convert docker-compose to Kubernetes
+        run: |
+          mkdir k8s
+          kompose convert -f docker-compose.yml -o k8s/
+
+      - name: Zip Kubernetes YAML files
+        run: |
+          cd k8s
+          zip -r ../PaulineSoubrieWordpress.zip *.yaml
+
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Upload zip to FTP
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_PATH: ${{ secrets.FTP_PATH }}
+        run: |
+          lftp -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" <<EOF
+          set ftp:ssl-allow no
+          mkdir -p $FTP_PATH
+          cd $FTP_PATH
+          put PaulineSoubrieWordpress.zip
+          bye
+          EOF
+
