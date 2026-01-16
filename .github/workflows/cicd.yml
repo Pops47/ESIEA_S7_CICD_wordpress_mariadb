@@ -9,6 +9,10 @@ on:
 jobs:
   main_job:
     runs-on: ubuntu-latest
+    env:
+      MARIADB_ROOT_PASSWORD: ${{ secrets.MARIADB_ROOT_PASSWORD }}
+      MARIADB_USER: ${{ secrets.MARIADB_USER }}
+      MARIADB_PASSWORD: ${{ secrets.MARIADB_PASSWORD }}
 
     steps:
       - name: Checkout repo
@@ -47,4 +51,3 @@ jobs:
           put PaulineSoubrieWordpress.zip
           bye
           EOF
-
