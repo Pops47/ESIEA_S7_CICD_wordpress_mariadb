@@ -19,6 +19,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    ports:
+      - "3306:3306"
 
   wordpress:
     image: wordpress:6.3.2-php8.0-apache
