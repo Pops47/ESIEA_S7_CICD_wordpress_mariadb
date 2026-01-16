@@ -61,8 +61,8 @@ networks:
 
 secrets:
   mariadb_user:
-    file: mariadb_user
+    file: secrets/mariadb_user.txt
   mariadb_password:
-    file: mariadb_password
+    file: secrets/mariadb_password.txt
   mariadb_root_password:
-    file: mariadb_root_password
+    file: secrets/mariadb_root_password.txt
