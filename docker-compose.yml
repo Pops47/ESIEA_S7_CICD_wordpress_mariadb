@@ -7,9 +7,9 @@ services:
     restart: unless-stopped
     environment:
       MARIADB_DATABASE: wordpress
-      MARIADB_USER: ${MARIADB_USER}
-      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
-      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_USER: /run/secrets/mariadb_user
+      MARIADB_PASSWORD: /run/secrets/mariadb_password
+      MARIADB_ROOT_PASSWORD: /run/secrets/mariadb_root_password
     volumes:
       - mariadb_data:/var/lib/mysql
     networks:
@@ -21,6 +21,10 @@ services:
       retries: 5
     ports:
       - "3306:3306"
+    secrets:
+      - mariadb_root_password
+      - mariadb_password
+      - mariadb_user
 
   wordpress:
     image: wordpress:6.3.2-php8.0-apache
@@ -35,12 +39,15 @@ services:
       WORDPRESS_DB_HOST: mariadb
       WORDPRESS_DB_PORT: 3306
       WORDPRESS_DB_NAME: wordpress
-      WORDPRESS_DB_USER: ${MARIADB_USER}
-      WORDPRESS_DB_PASSWORD: ${MARIADB_PASSWORD}
+      WORDPRESS_DB_USER: /run/secrets/mariadb_user
+      WORDPRESS_DB_PASSWORD: /run/secrets/mariadb_password
     volumes:
       - wordpress_data:/var/www/html
     networks:
       - wordpress-network
+    secrets:
+      - mariadb_user
+      - mariadb_password
 
 volumes:
   mariadb_data:
@@ -51,3 +58,11 @@ volumes:
 networks:
   wordpress-network:
     driver: bridge
+
+secrets:
+  mariadb_user:
+    file: mariadb_user
+  mariadb_password:
+    file: mariadb_password
+  mariadb_root_password:
+    file: mariadb_root_password
