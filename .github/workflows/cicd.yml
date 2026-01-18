@@ -14,9 +14,20 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Create secrets
+        env:
+          MARIADB_ROOT_PASSWORD: ${{ secrets.MARIADB_ROOT_PASSWORD }}
+          MARIADB_USER: ${{ secrets.MARIADB_USER }}
+          MARIADB_PASSWORD: ${{ secrets.MARIADB_PASSWORD }}
+          
+        run: |
+          mkdir -p secrets
+          echo -n "$MARIADB_ROOT_PASSWORD" > secrets/mariadb_root_password.txt
+          echo -n "$MARIADB_USER" > secrets/mariadb_user.txt
+          echo -n "$MARIADB_PASSWORD" > secrets/mariadb_password.txt
       - name: Install Kompose
         run: |
-          curl -L https://github.com/kubernetes/kompose/releases/latest/download/kompose-linux-amd64 -o kompose
+          curl -L https://github.com/kubernetes/kompose/releases/1.28.0/download/kompose-linux-amd64 -o kompose
           chmod +x kompose
           sudo mv kompose /usr/local/bin/kompose
 

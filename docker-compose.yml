@@ -3,7 +3,6 @@ version: "3.8"
 services:
   mariadb:
     image: mariadb:10.5
-    container_name: mariadb
     restart: unless-stopped
     environment:
       MARIADB_DATABASE: wordpress
@@ -14,21 +13,21 @@ services:
       - mariadb_data:/var/lib/mysql
     networks:
       - wordpress-network
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     ports:
       - "3306:3306"
     secrets:
       - mariadb_root_password
       - mariadb_password
       - mariadb_user
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    
 
   wordpress:
     image: wordpress:6.3.2-php8.0-apache
-    container_name: wordpress
     restart: unless-stopped
     depends_on:
       mariadb:
