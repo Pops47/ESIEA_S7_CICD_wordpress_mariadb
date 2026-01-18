@@ -22,9 +22,9 @@ jobs:
           
         run: |
           mkdir -p secrets
-          echo -n "$MARIADB_ROOT_PASSWORD" > secrets/mariadb_root_password.txt
-          echo -n "$MARIADB_USER" > secrets/mariadb_user.txt
-          echo -n "$MARIADB_PASSWORD" > secrets/mariadb_password.txt
+          echo -n "$MARIADB_ROOT_PASSWORD" > secrets/mariadb-root-password.txt
+          echo -n "$MARIADB_USER" > secrets/mariadb-user.txt
+          echo -n "$MARIADB_PASSWORD" > secrets/mariadb-password.txt
       - name: Install Kompose
         run: |
           curl -L https://github.com/kubernetes/kompose/releases/download/v1.28.0/kompose-linux-amd64 -o kompose
