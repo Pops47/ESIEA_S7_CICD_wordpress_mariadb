@@ -6,19 +6,19 @@ services:
     restart: unless-stopped
     environment:
       MARIADB_DATABASE: wordpress
-      MARIADB_USER: /run/secrets/mariadb-user
-      MARIADB_PASSWORD: /run/secrets/mariadb-password
-      MARIADB_ROOT_PASSWORD: /run/secrets/mariadb-root-password
+      MARIADB_USER: /run/secrets/mariadb_user
+      MARIADB_PASSWORD: /run/secrets/mariadb_password
+      MARIADB_ROOT_PASSWORD: /run/secrets/mariadb_root_password
     volumes:
-      - mariadb-data:/var/lib/mysql
+      - mariadb_data:/var/lib/mysql
     networks:
       - wordpress-network
     ports:
       - "3306:3306"
     secrets:
-      - mariadb-root-password
-      - mariadb-password
-      - mariadb-user
+      - mariadb_root_password
+      - mariadb_password
+      - mariadb_user
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 10s
@@ -38,20 +38,20 @@ services:
       WORDPRESS_DB_HOST: mariadb
       WORDPRESS_DB_PORT: 3306
       WORDPRESS_DB_NAME: wordpress
-      WORDPRESS_DB_USER: /run/secrets/mariadb-user
-      WORDPRESS_DB_PASSWORD: /run/secrets/mariadb-password
+      WORDPRESS_DB_USER: /run/secrets/mariadb_user
+      WORDPRESS_DB_PASSWORD: /run/secrets/mariadb_password
     volumes:
-      - wordpress-data:/var/www/html
+      - wordpress_data:/var/www/html
     networks:
       - wordpress-network
     secrets:
-      - mariadb-user
-      - mariadb-password
+      - mariadb_ user
+      - mariadb_password
 
 volumes:
-  mariadb-data:
+  mariadb_data:
     driver: local
-  wordpress-data:
+  wordpress_data:
     driver: local
 
 networks:
@@ -59,9 +59,9 @@ networks:
     driver: bridge
 
 secrets:
-  mariadb-user:
-    file: secrets/mariadb-user.txt
-  mariadb-password:
-    file: secrets/mariadb-password.txt
-  mariadb-root-password:
-    file: secrets/mariadb-root-password.txt
+  mariadb_user:
+    file: secrets/mariadb_user.txt
+  mariadb_password:
+    file: secrets/mariadb_password.txt
+  mariadb_root_password:
+    file: secrets/mariadb_root_password.txt
