@@ -45,7 +45,7 @@ services:
     networks:
       - wordpress-network
     secrets:
-      - mariadb_ user
+      - mariadb_user
       - mariadb_password
 
 volumes:
