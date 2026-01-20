@@ -11,7 +11,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - mysql-data:/var/lib/mysql
+      - mariadb-data:/var/lib/mysql
     deploy:
       replicas: 1
       resources:
@@ -20,13 +20,13 @@ services:
           memory: 512M
     labels:
       - "io.kompose.network/2026-s7-esiea-devops-cicd-tp1-wordpress-net=true"
-      - "io.kompose.service=mysql"
+      - "io.kompose.service=mariadb"
 
   wordpress:
     image: wordpress:6.3.2-php8.0-apache
     restart: always
     depends_on:
-      - mysql
+      - mariadb
     environment:
       WORDPRESS_DB_HOST: mariadb
       WORDPRESS_DB_NAME: ${MARIADB_DATABASE}
@@ -47,7 +47,7 @@ services:
       - "io.kompose.service=wordpress"
 
 volumes:
-  mysql-data:
+  mariadb-data:
     driver: local
   wordpress-data:
     driver: local
