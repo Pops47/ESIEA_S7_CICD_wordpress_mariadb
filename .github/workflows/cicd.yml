@@ -23,7 +23,7 @@ jobs:
         set -e
         
         # Créer le dossier k8s
-        mkdir -p k8s
+        mkdir -p PaulineSoubrieWordpress
         
         # Fonction pour encoder en base64
         encode_base64() {
@@ -31,7 +31,7 @@ jobs:
         }
         
         # Générer le fichier yaml des secrets
-        cat > k8s/secrets.yaml <<EOF
+        cat > PaulineSoubrieWordpress/secrets.yaml <<EOF
         ---
         apiVersion: v1
         kind: Secret
@@ -75,12 +75,10 @@ jobs:
         sudo mv kompose /usr/local/bin/kompose
     - name: Convert docker-compose to Kubernetes manifests
       run: |
-        kompose convert -f docker-compose.yml -o k8s/
+        kompose convert -f docker-compose.yml -o PaulineSoubrieWordpress/
     
     - name: Zip Kubernetes YAML files
       run: |
-        mkdir -p PaulineSoubrieWordpress
-        cp k8s/*.yaml k8s/*.yml PaulineSoubrieWordpress/ 2>/dev/null || true
         zip -r PaulineSoubrieWordpress.zip PaulineSoubrieWordpress/
 
     - name: Install lftp
