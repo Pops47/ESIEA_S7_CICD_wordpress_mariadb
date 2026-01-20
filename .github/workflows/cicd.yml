@@ -36,34 +36,34 @@ jobs:
         apiVersion: v1
         kind: Secret
         metadata:
-          name: mysql-root-password
+          name: mariadb-root-password
         type: Opaque
         data:
-          mysql_root_password: $(encode_base64 "$MYSQL_ROOT_PASSWORD")
+          mariadb_root_password: $(encode_base64 "$MARIADB_ROOT_PASSWORD")
         ---
         apiVersion: v1
         kind: Secret
         metadata:
-          name: mysql-database
+          name: mariadb-database
         type: Opaque
         data:
-          mysql_database: $(encode_base64 "$MYSQL_DATABASE")
+          mariadb_database: $(encode_base64 "$MARIADB_DATABASE")
         ---
         apiVersion: v1
         kind: Secret
         metadata:
-          name: mysql-user
+          name: mariadb-user
         type: Opaque
         data:
-          mysql_user: $(encode_base64 "$MYSQL_USER")
+          mariadb_user: $(encode_base64 "$MARIADB_USER")
         ---
         apiVersion: v1
         kind: Secret
         metadata:
-          name: mysql-password
+          name: mariadb-password
         type: Opaque
         data:
-          mysql_password: $(encode_base64 "$MYSQL_PASSWORD")
+          mariadb_password: $(encode_base64 "$MARIADB_PASSWORD")
         EOF
 
         echo "Fichier secrets.yaml généré avec succès"
