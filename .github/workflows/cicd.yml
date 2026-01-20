@@ -79,8 +79,7 @@ jobs:
     
     - name: Zip Kubernetes YAML files
       run: |
-        cd k8s
-        zip -r PaulineSoubrieWordpress.zip *.yaml *.yml
+        zip -r PaulineSoubrieWordpress.zip k8s/
 
     - name: Install lftp
       run: sudo apt-get update && sudo apt-get install -y lftp
@@ -93,8 +92,7 @@ jobs:
           FTP_PATH: ${{ secrets.FTP_PATH }}
       run: |
         lftp -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" <<EOF
-        set ftp:ssl-allow no
-        mkdir -p $FTP_PATH
+        set ssl:verify-certificate no
         cd $FTP_PATH
         put PaulineSoubrieWordpress.zip
         bye
