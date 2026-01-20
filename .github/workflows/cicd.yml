@@ -1,70 +1,101 @@
-name: wordpress_cicd
+name: CICD
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 jobs:
-  main_job:
+  deploy:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Generate secrets YAML from GitHub Secrets
+      env:
+        MARIADB_ROOT_PASSWORD: ${{ secrets.MARIADB_PASSWORD }}
+        MARIADB_DATABASE: ${{ secrets.MARIADB_DATABASE }}
+        MARIADB_USER: ${{ secrets.MARIADB_USER }}
+        MARIADB_PASSWORD: ${{ secrets.MARIADB_PASSWORD }}
+      run: |
+        set -e
+        
+        # Créer le dossier k8s
+        mkdir -p k8s
+        
+        # Fonction pour encoder en base64
+        encode_base64() {
+          echo -n "$1" | base64
+        }
+        
+        # Générer le fichier yaml des secrets
+        cat > k8s/secrets.yaml <<EOF
+        ---
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: mysql-root-password
+        type: Opaque
+        data:
+          mysql_root_password: $(encode_base64 "$MYSQL_ROOT_PASSWORD")
+        ---
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: mysql-database
+        type: Opaque
+        data:
+          mysql_database: $(encode_base64 "$MYSQL_DATABASE")
+        ---
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: mysql-user
+        type: Opaque
+        data:
+          mysql_user: $(encode_base64 "$MYSQL_USER")
+        ---
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: mysql-password
+        type: Opaque
+        data:
+          mysql_password: $(encode_base64 "$MYSQL_PASSWORD")
+        EOF
 
-      - name: Create secrets
-        env:
-          MARIADB_ROOT_PASSWORD: ${{ secrets.MARIADB_ROOT_PASSWORD }}
-          MARIADB_USER: ${{ secrets.MARIADB_USER }}
-          MARIADB_PASSWORD: ${{ secrets.MARIADB_PASSWORD }}
-          
-        run: |
-          mkdir -p secrets
-          echo -n "$MARIADB_ROOT_PASSWORD" > secrets/mariadb_root_password.txt
-          echo -n "$MARIADB_USER" > secrets/mariadb_user.txt
-          echo -n "$MARIADB_PASSWORD" > secrets/mariadb_password.txt
-      - name: Install Kompose
-        run: |
-          curl -L https://github.com/kubernetes/kompose/releases/download/v1.28.0/kompose-linux-amd64 -o kompose
-          chmod +x kompose
-          sudo mv kompose /usr/local/bin/kompose
+        echo "Fichier secrets.yaml généré avec succès"
+    
+    - name: Install Kompose
+      run: |
+        curl -L https://github.com/kubernetes/kompose/releases/download/v1.38.0/kompose-linux-amd64 -o kompose
+        chmod +x kompose
+        sudo mv kompose /usr/local/bin/kompose
+    - name: Convert docker-compose to Kubernetes manifests
+      run: |
+        kompose convert -f docker-compose.yml -o k8s/
+    
+    - name: Zip Kubernetes YAML files
+      run: |
+        cd k8s
+        zip -r PaulineSoubrieWordpress.zip *.yaml *.yml
 
-      - name: Convert docker-compose to Kubernetes
-        run: |
-          mkdir k8s
-          kompose convert -f docker-compose.yml -o k8s/
+    - name: Install lftp
+      run: sudo apt-get update && sudo apt-get install -y lftp
 
-      - name: Create kustomization.yml
-        run: |
-          cd k8s
-          echo "resources:" > kustomization.yaml
-          for file in *.yaml; do
-            if [ "$file" != "kustomization.yaml" ]; then
-              echo "  - $file" >> kustomization.yaml
-            fi
-          done
-
-      - name: Zip Kubernetes YAML files
-        run: |
-          cd k8s
-          zip -r ../PaulineSoubrieWordpress.zip *.yaml *.yml
-
-      - name: Install lftp
-        run: sudo apt-get update && sudo apt-get install -y lftp
-
-      - name: Upload zip to FTP
-        env:
+    - name: Upload zip to FTP
+      env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
           FTP_PATH: ${{ secrets.FTP_PATH }}
-        run: |
-          lftp -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" <<EOF
-          set ftp:ssl-allow no
-          mkdir -p $FTP_PATH
-          cd $FTP_PATH
-          put PaulineSoubrieWordpress.zip
-          bye
-          EOF
+      run: |
+        lftp -u "$FTP_USER","$FTP_PASSWORD" "$FTP_HOST" <<EOF
+        set ftp:ssl-allow no
+        mkdir -p $FTP_PATH
+        cd $FTP_PATH
+        put PaulineSoubrieWordpress.zip
+        bye
+        EOF

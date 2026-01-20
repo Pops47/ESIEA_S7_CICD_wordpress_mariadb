@@ -1,67 +1,57 @@
-version: "3.8"
-
 services:
   mariadb:
     image: mariadb:10.5
-    restart: unless-stopped
+    restart: always
     environment:
-      MARIADB_DATABASE: wordpress
-      MARIADB_USER: /run/secrets/mariadb_user
-      MARIADB_PASSWORD: /run/secrets/mariadb_password
-      MARIADB_ROOT_PASSWORD: /run/secrets/mariadb_root_password
-    volumes:
-      - mariadb_data:/var/lib/mysql
-    networks:
-      - wordpress-network
+      # Variables d'environnement qui seront converties en secrets
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
     ports:
       - "3306:3306"
-    secrets:
-      - mariadb_root_password
-      - mariadb_password
-      - mariadb_user
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    
+    volumes:
+      - mysql-data:/var/lib/mysql
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    labels:
+      - "io.kompose.network/2026-s7-esiea-devops-cicd-tp1-wordpress-net=true"
+      - "io.kompose.service=mysql"
 
   wordpress:
     image: wordpress:6.3.2-php8.0-apache
-    restart: unless-stopped
+    restart: always
     depends_on:
-      mariadb:
-        condition: service_healthy
-    ports:
-      - "8080:80"
+      - mysql
     environment:
       WORDPRESS_DB_HOST: mariadb
-      WORDPRESS_DB_PORT: 3306
-      WORDPRESS_DB_NAME: wordpress
-      WORDPRESS_DB_USER: /run/secrets/mariadb_user
-      WORDPRESS_DB_PASSWORD: /run/secrets/mariadb_password
+      WORDPRESS_DB_NAME: ${MARIADB_DATABASE}
+      WORDPRESS_DB_USER: ${MARIADB_USER}
+      WORDPRESS_DB_PASSWORD: ${MARIADB_PASSWORD}
+    ports:
+      - "8080:80"
     volumes:
-      - wordpress_data:/var/www/html
-    networks:
-      - wordpress-network
-    secrets:
-      - mariadb_user
-      - mariadb_password
+      - wordpress-data:/var/www/html
+    deploy:
+      replicas: 4
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    labels:
+      - "io.kompose.network/2026-s7-esiea-devops-cicd-tp1-wordpress-net=true"
+      - "io.kompose.service=wordpress"
 
 volumes:
-  mariadb_data:
+  mysql-data:
     driver: local
-  wordpress_data:
+  wordpress-data:
     driver: local
 
 networks:
-  wordpress-network:
-    driver: bridge
-
-secrets:
-  mariadb_user:
-    file: secrets/mariadb_user.txt
-  mariadb_password:
-    file: secrets/mariadb_password.txt
-  mariadb_root_password:
-    file: secrets/mariadb_root_password.txt
+  default:
+    name: 2026-s7-esiea-devops-cicd-tp1-wordpress-net
