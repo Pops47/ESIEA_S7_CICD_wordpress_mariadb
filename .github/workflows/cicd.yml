@@ -79,7 +79,7 @@ jobs:
     
     - name: Zip Kubernetes YAML files
       run: |
-        zip -r PaulineSoubrieWordpress.zip k8s/
+        zip -r PaulineSoubrieWordpress.zip k8s/*.yaml k8s/*.yml
 
     - name: Install lftp
       run: sudo apt-get update && sudo apt-get install -y lftp
