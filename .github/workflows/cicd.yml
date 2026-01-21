@@ -77,6 +77,95 @@ jobs:
       run: |
         kompose convert -f docker-compose.yml -o PaulineSoubrieWordpress/
     
+    - name: Fix deployments to use secrets
+      run: |
+        # Installer PyYAML pour modifier les YAML
+        pip3 install pyyaml --quiet
+        
+        # Script Python pour corriger les déploiements
+        python3 <<'PYEOF'
+        import yaml
+        import sys
+        
+        # Corriger mariadb-deployment.yaml
+        with open('PaulineSoubrieWordpress/mariadb-deployment.yaml', 'r') as f:
+            mariadb_doc = yaml.safe_load(f)
+        
+        container = mariadb_doc['spec']['template']['spec']['containers'][0]
+        env_vars = container.get('env', [])
+        
+        # Mapping des variables aux secrets
+        secret_mapping = {
+            'MARIADB_ROOT_PASSWORD': {'secret': 'mariadb-root-password', 'key': 'mariadb_root_password'},
+            'MARIADB_DATABASE': {'secret': 'mariadb-database', 'key': 'mariadb_database'},
+            'MARIADB_USER': {'secret': 'mariadb-user', 'key': 'mariadb_user'},
+            'MARIADB_PASSWORD': {'secret': 'mariadb-password', 'key': 'mariadb_password'}
+        }
+        
+        # Remplacer les variables d'environnement vides par des références aux secrets
+        new_env = []
+        for var in env_vars:
+            var_name = var.get('name', '')
+            if var_name in secret_mapping:
+                mapping = secret_mapping[var_name]
+                new_env.append({
+                    'name': var_name,
+                    'valueFrom': {
+                        'secretKeyRef': {
+                            'name': mapping['secret'],
+                            'key': mapping['key']
+                        }
+                    }
+                })
+            else:
+                new_env.append(var)
+        
+        container['env'] = new_env
+        
+        with open('PaulineSoubrieWordpress/mariadb-deployment.yaml', 'w') as f:
+            yaml.dump(mariadb_doc, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
+        
+        # Corriger wordpress-deployment.yaml si il existe
+        try:
+            with open('PaulineSoubrieWordpress/wordpress-deployment.yaml', 'r') as f:
+                wp_doc = yaml.safe_load(f)
+            
+            wp_container = wp_doc['spec']['template']['spec']['containers'][0]
+            wp_env_vars = wp_container.get('env', [])
+            
+            wp_secret_mapping = {
+                'WORDPRESS_DB_NAME': {'secret': 'mariadb-database', 'key': 'mariadb_database'},
+                'WORDPRESS_DB_USER': {'secret': 'mariadb-user', 'key': 'mariadb_user'},
+                'WORDPRESS_DB_PASSWORD': {'secret': 'mariadb-password', 'key': 'mariadb_password'}
+            }
+            
+            new_wp_env = []
+            for var in wp_env_vars:
+                var_name = var.get('name', '')
+                if var_name in wp_secret_mapping:
+                    mapping = wp_secret_mapping[var_name]
+                    new_wp_env.append({
+                        'name': var_name,
+                        'valueFrom': {
+                            'secretKeyRef': {
+                                'name': mapping['secret'],
+                                'key': mapping['key']
+                            }
+                        }
+                    })
+                else:
+                    new_wp_env.append(var)
+            
+            wp_container['env'] = new_wp_env
+            
+            with open('PaulineSoubrieWordpress/wordpress-deployment.yaml', 'w') as f:
+                yaml.dump(wp_doc, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
+        except FileNotFoundError:
+            pass
+        
+        print("✅ Déploiements corrigés pour utiliser les secrets")
+        PYEOF
+    
     - name: Zip Kubernetes YAML files
       run: |
         zip -r PaulineSoubrieWordpress.zip PaulineSoubrieWordpress/

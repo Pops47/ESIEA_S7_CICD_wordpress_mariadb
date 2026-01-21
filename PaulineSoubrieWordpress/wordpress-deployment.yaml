@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    io.kompose.network/2026-s7-esiea-devops-cicd-tp1-wordpress-net: "true"
+    io.kompose.service: wordpress
+    kompose.cmd: kompose convert -f docker-compose.yml -o PaulineSoubrieWordpress/
+    kompose.version: 1.38.0 (a8f5d1cbd)
+  labels:
+    io.kompose.service: wordpress
+  name: wordpress
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      io.kompose.service: wordpress
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        io.kompose.network/2026-s7-esiea-devops-cicd-tp1-wordpress-net: "true"
+        io.kompose.service: wordpress
+        kompose.cmd: kompose convert -f docker-compose.yml -o PaulineSoubrieWordpress/
+        kompose.version: 1.38.0 (a8f5d1cbd)
+      labels:
+        io.kompose.service: wordpress
+    spec:
+      containers:
+        - env:
+            - name: WORDPRESS_DB_HOST
+              value: mariadb
+            - name: WORDPRESS_DB_NAME
+            - name: WORDPRESS_DB_PASSWORD
+            - name: WORDPRESS_DB_USER
+          image: wordpress:6.3.2-php8.0-apache
+          name: wordpress
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 500m
+              memory: "536870912"
+          volumeMounts:
+            - mountPath: /var/www/html
+              name: wordpress-data
+      restartPolicy: Always
+      volumes:
+        - name: wordpress-data
+          persistentVolumeClaim:
+            claimName: wordpress-data
