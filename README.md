@@ -28,6 +28,13 @@ Une fois le workflow terminé, récupérez le fichier `PaulineSoubrieWordpress.z
 kubectl apply -f PaulineSoubrieWordpress/
 ```
 
+Puis pour visualiser le wordpress : 
+
+```bash
+minikube service wordpress --url
+```
+
+
 ## Structure
 
 Le projet contient :

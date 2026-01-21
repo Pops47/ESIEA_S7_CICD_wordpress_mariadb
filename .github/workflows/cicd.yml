@@ -166,8 +166,9 @@ jobs:
         print("✅ Déploiements corrigés pour utiliser les secrets")
         PYEOF
     
-    - name: Zip Kubernetes YAML files
+    - name: Zip Kubernetes YAML files and README
       run: |
+        cp README.md PaulineSoubrieWordpress/
         zip -r PaulineSoubrieWordpress.zip PaulineSoubrieWordpress/
 
     - name: Install lftp
