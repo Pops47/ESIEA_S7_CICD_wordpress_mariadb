@@ -18,6 +18,20 @@ Avant d'utiliser le pipeline, configurez les secrets suivants dans les paramètr
 - `FTP_PASSWORD` : Mot de passe FTP
 - `FTP_PATH` : Chemin du répertoire FTP de destination
 
+Pour tester les manifests Kubernetes localement, vous pouvez utiliser minikube. Installation :
+
+```bash
+# macOS
+brew install minikube
+
+# Linux
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+# Démarrer minikube
+minikube start
+```
+
 ## Utilisation
 
 Le pipeline se déclenche automatiquement lors d'un push sur la branche `main`, ou manuellement via l'action `workflow_dispatch` dans l'onglet Actions de GitHub.
